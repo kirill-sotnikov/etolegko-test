@@ -1,4 +1,15 @@
 const requestCount = 10;
+const byteUnits = ['байт', 'КБ', 'МБ', 'ГБ', 'ТБ', 'ПБ', 'ЭБ'];
+
+function formatBytes(bytes: number): string {
+  let value = bytes;
+  let unit = 0;
+  while (Number(value.toFixed(3)) >= 1000 && unit < byteUnits.length - 1) {
+    value /= 1000;
+    unit++;
+  }
+  return `${Number(value.toFixed(3))} ${byteUnits[unit]}`;
+}
 
 async function measureDownload(url: URL): Promise<void> {
   let totalBytes = 0;
@@ -22,8 +33,8 @@ async function measureDownload(url: URL): Promise<void> {
 
   const bytesPerSecond = totalBytes / (totalMs / 1000);
   console.log(`Среднее время запроса: ${(totalMs / requestCount).toFixed(2)} мс`);
-  console.log(`Всего скачано: ${totalBytes} байт`);
-  console.log(`Скорость скачивания: ${(bytesPerSecond / 1_000_000).toFixed(3)} МБ/с`);
+  console.log(`Всего скачано: ${formatBytes(totalBytes)}`);
+  console.log(`Скорость скачивания: ${formatBytes(bytesPerSecond)}/с`);
 }
 
 try {
