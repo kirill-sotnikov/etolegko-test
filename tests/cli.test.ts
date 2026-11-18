@@ -48,13 +48,36 @@ it('скачивает файл 10 раз последовательно и ра
   expect(paths).toEqual(Array(10).fill('/image'));
   expect(maxActive).toBe(1);
   expect(stderr).toBe('');
-  expect(stdout).toContain('Всего скачано: 100000 байт');
+  expect(stdout).toContain('Всего скачано: 100 КБ');
   const averageMs = Number(stdout.match(/Среднее время запроса: (\d+\.\d+) мс/)?.[1]);
-  const speedMBps = Number(stdout.match(/Скорость скачивания: (\d+\.\d+) МБ\/с/)?.[1]);
+  const speedKBps = Number(stdout.match(/Скорость скачивания: (\d+(?:\.\d+)?) КБ\/с/)?.[1]);
   // Учитываем округление среднего времени до сотых миллисекунды.
   expect(averageMs).toBeGreaterThanOrEqual(bodyTimeMs / 10 - 0.005);
   expect(averageMs).toBeLessThanOrEqual(elapsedMs / 10 + 0.005);
-  expect(speedMBps).toBeCloseTo(0.1 / (10 * averageMs / 1000), 2);
+  expect(speedKBps / 1000).toBeCloseTo(0.1 / (10 * averageMs / 1000), 2);
+});
+
+it.each([
+  [0, '0 байт'],
+  [999, '999 байт'],
+  [1000, '1 КБ'],
+  [1500, '1.5 КБ'],
+  [999_999, '999.999 КБ'],
+  [1_000_000, '1 МБ'],
+  [12_000_000, '12 МБ'],
+] as const)('подбирает единицу для %i скачанных байт', async (bytes, expected) => {
+  const payload = Buffer.alloc(bytes);
+  let firstRequest = true;
+  const url = await serve((_request, response) => {
+    response.end(firstRequest ? payload : undefined);
+    firstRequest = false;
+  });
+
+  const { stdout } = await runCli(url);
+  expect(stdout.split('\n')).toContain(`Всего скачано: ${expected}`);
+  if (bytes === 0) {
+    expect(stdout.split('\n')).toContain('Скорость скачивания: 0 байт/с');
+  }
 });
 
 it('останавливается на первом ошибочном HTTP-ответе', async () => {
