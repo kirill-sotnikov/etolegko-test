@@ -15,6 +15,8 @@ yarn install
 ## Запуск
 
 ```sh
+yarn dev https://example.com/image.jpg
+# или
 yarn build
 yarn start https://example.com/image.jpg
 ```
@@ -37,10 +39,8 @@ yarn start https://example.com/image.jpg
 
   После 10 запросов счётчик покажет 10 МБ. Чтобы остановить сервер, нажмите Ctrl+C в его терминале.
 
-- `yarn dev <URL>` — запуск `src/index.ts` с перезапуском при изменениях.
+- `yarn dev <URL>` — запуск `src/index.ts`.
 - `yarn typecheck` — проверка типов без сборки.
 - `yarn test` — запуск тестов Vitest.
 - `yarn build` — сборка в `dist/`.
 - `yarn start <URL>` — запуск собранного проекта после `yarn build`.
-
-Исходный код находится в `src/`. Включён строгий режим TypeScript.
